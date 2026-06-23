@@ -149,6 +149,15 @@
 
         .link-btn:hover .link-label { color: #ecd870; }
 
+        .link-key {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #5a3c14;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        .link-btn:hover .link-key { color: #a07830; }
+
         #right-col {
             flex: 1;
             min-width: 0;
@@ -357,6 +366,17 @@
         #pf-time::before { content: '✦ '; }
         #pf-time::after  { content: ' ✦'; }
 
+        /* Подсказка по клавишам управления звуком */
+        #key-hint-static {
+            font-size: 9px;
+            letter-spacing: 1.2px;
+            color: #3a2810;
+            text-align: right;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+            text-transform: uppercase;
+        }
+
         audio { display: none; }
 
         /* Перекрывает нативный progress bar GMod, который рисуется в правом нижнем углу.
@@ -389,15 +409,15 @@
         <div id="links-col">
             <div class="link-btn" onclick="window.open('https://discord.gg/r62vRJT7YN')">
                 <span class="link-icon">💬</span>
-                <span class="link-label">Discord</span>
+                <span class="link-label">Discord <span class="link-key">[1]</span></span>
             </div>
             <div class="link-btn" onclick="window.open('https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606')">
                 <span class="link-icon">📦</span>
-                <span class="link-label">Коллекция</span>
+                <span class="link-label">Коллекция <span class="link-key">[2]</span></span>
             </div>
             <div class="link-btn" onclick="window.open('https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0')">
                 <span class="link-icon">📜</span>
-                <span class="link-label">Правила</span>
+                <span class="link-label">Правила <span class="link-key">[3]</span></span>
             </div>
         </div>
 
@@ -424,6 +444,7 @@
                 </div>
                 <div id="vol-label">45%</div>
             </div>
+            <div id="key-hint-static">[ 1 ] discord &nbsp;·&nbsp; [ 2 ] коллекция &nbsp;·&nbsp; [ 3 ] правила &nbsp;·&nbsp; [ M ] mute &nbsp;·&nbsp; [ ↑↓ ] громкость</div>
 
             <div id="progress-frame">
                 <div id="progress-notches"></div>
@@ -564,6 +585,46 @@
         // с реальным прогрессом от движка. GameDetails() вызывается GMod напрямую
         // и передаёт точный progress [0..1]. Этого достаточно.
 
+        // --- Обработчики фазы загрузки файлов кеша сервера ---
+        // SetFilesTotal/SetFilesNeeded/DownloadingFile вызываются ДО GameDetails,
+        // именно в этот момент нативный бар показывает "Loading server cache content".
+        var filesTotal   = 0;
+        var filesNeeded  = 0;
+
+        window.SetFilesTotal = function(total) {
+            filesTotal = Math.max(1, total);
+        };
+
+        window.SetFilesNeeded = function(needed) {
+            filesNeeded = Math.max(0, needed);
+            var p = Math.floor(((filesTotal - filesNeeded) / filesTotal) * 100);
+            if (p > lastPct) {
+                lastPct = p;
+                document.getElementById('progress-bar').style.width = p + '%';
+                document.getElementById('progress-pct').innerText   = p + '%';
+            }
+        };
+
+        window.DownloadingFile = function(filePath) {
+            filesNeeded = Math.max(0, filesNeeded - 1);
+            var p = Math.floor(((filesTotal - filesNeeded) / filesTotal) * 100);
+            if (p > lastPct) {
+                lastPct = p;
+                document.getElementById('progress-bar').style.width = p + '%';
+                document.getElementById('progress-pct').innerText   = p + '%';
+            }
+            if (filePath) {
+                var short = filePath.split('/').pop();
+                document.getElementById('status-text').innerText = ('Загрузка: ' + short).toUpperCase();
+            }
+        };
+
+        window.SetStatusChanged = function(status) {
+            if (status) {
+                document.getElementById('status-text').innerText = status.toUpperCase();
+            }
+        };
+
         // Кастомный курсор — работает даже если системный скрыт движком GMod.
         // CEF в loading screen может не показывать системный курсор до получения фокуса.
         var fakeCursor = document.createElement('div');
@@ -580,6 +641,64 @@
             fakeCursor.style.left = e.clientX + 'px';
             fakeCursor.style.top  = e.clientY + 'px';
         });
+
+        // Управление звуком через клавиатуру — keydown работает в CEF loading screen,
+        // в отличие от click/mousedown которые движок блокирует.
+        // M — mute/unmute, стрелки вверх/вниз — громкость +/-10%
+        // 1/2/3 — открыть Discord / Коллекция / Правила
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '1') {
+                window.open('https://discord.gg/r62vRJT7YN');
+                showKeyHint('[1] Discord');
+            } else if (e.key === '2') {
+                window.open('https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606');
+                showKeyHint('[2] Коллекция');
+            } else if (e.key === '3') {
+                window.open('https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0');
+                showKeyHint('[3] Правила');
+            } else if (e.key === 'm' || e.key === 'M' || e.key === 'м' || e.key === 'М') {
+                muted = !muted;
+                music.volume = muted ? 0 : curVol;
+                volIcon.classList.toggle('muted', muted);
+                showKeyHint(muted ? '🔇 Музыка выключена' : '🔊 Музыка включена');
+                tryPlay();
+            } else if (e.key === 'ArrowUp') {
+                if (muted) { muted = false; volIcon.classList.remove('muted'); }
+                applyVolume(curVol + 0.10);
+                showKeyHint('Громкость: ' + Math.round(curVol * 100) + '%');
+                tryPlay();
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+                applyVolume(curVol - 0.10);
+                showKeyHint('Громкость: ' + Math.round(curVol * 100) + '%');
+                e.preventDefault();
+            }
+        });
+
+        // Всплывающая подсказка об изменении громкости
+        var keyHintEl = null;
+        var keyHintTimer = null;
+        function showKeyHint(text) {
+            if (!keyHintEl) {
+                keyHintEl = document.createElement('div');
+                keyHintEl.style.cssText =
+                    'position:fixed;bottom:90px;right:16px;' +
+                    'background:rgba(18,8,3,0.92);border:1px solid #6a4c20;' +
+                    'color:#c8a040;font-size:11px;letter-spacing:1.5px;' +
+                    'padding:6px 14px;border-radius:3px;z-index:9998;' +
+                    'text-transform:uppercase;pointer-events:none;' +
+                    'text-shadow:0 1px 3px rgba(0,0,0,0.9);' +
+                    'box-shadow:0 2px 8px rgba(0,0,0,0.7);' +
+                    'transition:opacity 0.3s;';
+                document.body.appendChild(keyHintEl);
+            }
+            keyHintEl.innerText = text;
+            keyHintEl.style.opacity = '1';
+            clearTimeout(keyHintTimer);
+            keyHintTimer = setTimeout(function() {
+                keyHintEl.style.opacity = '0';
+            }, 1800);
+        }
 
     </script>
 
