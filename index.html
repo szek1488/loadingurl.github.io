@@ -16,6 +16,7 @@
             font-family: 'Georgia', 'Times New Roman', serif;
             color: #d4b483;
             position: relative;
+            cursor: default;
         }
 
         #background {
@@ -372,15 +373,15 @@
     <div id="ui-root">
 
         <div id="links-col">
-            <a class="link-btn" href="https://discord.gg/r62vRJT7YN" target="_blank">
+            <a class="link-btn" href="https://discord.gg/r62vRJT7YN" target="_self">
                 <span class="link-icon">💬</span>
                 <span class="link-label">Discord</span>
             </a>
-            <a class="link-btn" href="https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606" target="_blank">
+            <a class="link-btn" href="https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606" target="_self">
                 <span class="link-icon">📦</span>
                 <span class="link-label">Коллекция</span>
             </a>
-            <a class="link-btn" href="https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0" target="_blank">
+            <a class="link-btn" href="https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0" target="_self">
                 <span class="link-icon">📜</span>
                 <span class="link-label">Правила</span>
             </a>
@@ -463,8 +464,14 @@
             if (p) p.then(function() { started = true; }).catch(function() {});
         }
 
+        // В CEF GMod события мыши не гарантированы во время загрузки —
+        // запускаем музыку сразу при инициализации страницы.
+        // Оставляем слушатели как fallback на случай если autoplay не прошёл.
         document.addEventListener('mousemove', tryPlay, { once: true });
         document.addEventListener('click', tryPlay);
+        window.addEventListener('load', function() {
+            setTimeout(tryPlay, 100);
+        });
 
         volIcon.addEventListener('click', function(e) {
             e.preventDefault(); e.stopPropagation();
@@ -492,6 +499,9 @@
         document.addEventListener('mouseup', function() { dragging = false; });
 
         applyVolume(0.70);
+
+        // Запуск музыки сразу — CEF не блокирует autoplay.
+        tryPlay();
 
         var lastPct    = 0;
         var elapsedSec = 0;
@@ -536,19 +546,10 @@
             }
         }
 
-        (function() {
-            var cur = 0;
-            var bar = document.getElementById('progress-bar');
-            var pct = document.getElementById('progress-pct');
-            var iv  = setInterval(function() {
-                if (cur >= 94) { clearInterval(iv); return; }
-                cur = Math.min(94, cur + Math.max(0.04, (94 - cur) * 0.003));
-                if (cur > lastPct) {
-                    bar.style.width = cur.toFixed(1) + '%';
-                    pct.innerText   = Math.floor(cur) + '%';
-                }
-            }, 120);
-        })();
+        // Фоновая анимация убрана — она двигала бар самостоятельно и расходилась
+        // с реальным прогрессом от движка. GameDetails() вызывается GMod напрямую
+        // и передаёт точный progress [0..1]. Этого достаточно.
+
     </script>
 
 </body>
