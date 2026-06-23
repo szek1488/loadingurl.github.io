@@ -358,6 +358,19 @@
         #pf-time::after  { content: ' ✦'; }
 
         audio { display: none; }
+
+        /* Перекрывает нативный progress bar GMod, который рисуется в правом нижнем углу.
+           Нативный бар находится вне CEF — поверх него рисуем свой блок того же цвета. */
+        #gmod-bar-cover {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 320px;
+            height: 48px;
+            background: #120a03;
+            z-index: 9999;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -365,6 +378,7 @@
     <div id="background"></div>
     <div id="vignette"></div>
     <div id="overlay-bottom"></div>
+    <div id="gmod-bar-cover"></div>
 
     <audio id="bg-music" loop>
         <source src="music.mp3" type="audio/mpeg">
@@ -373,18 +387,18 @@
     <div id="ui-root">
 
         <div id="links-col">
-            <a class="link-btn" href="https://discord.gg/r62vRJT7YN" target="_self">
+            <div class="link-btn" onclick="window.open('https://discord.gg/r62vRJT7YN')">
                 <span class="link-icon">💬</span>
                 <span class="link-label">Discord</span>
-            </a>
-            <a class="link-btn" href="https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606" target="_self">
+            </div>
+            <div class="link-btn" onclick="window.open('https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606')">
                 <span class="link-icon">📦</span>
                 <span class="link-label">Коллекция</span>
-            </a>
-            <a class="link-btn" href="https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0" target="_self">
+            </div>
+            <div class="link-btn" onclick="window.open('https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0')">
                 <span class="link-icon">📜</span>
                 <span class="link-label">Правила</span>
-            </a>
+            </div>
         </div>
 
         <div id="right-col">
@@ -549,6 +563,23 @@
         // Фоновая анимация убрана — она двигала бар самостоятельно и расходилась
         // с реальным прогрессом от движка. GameDetails() вызывается GMod напрямую
         // и передаёт точный progress [0..1]. Этого достаточно.
+
+        // Кастомный курсор — работает даже если системный скрыт движком GMod.
+        // CEF в loading screen может не показывать системный курсор до получения фокуса.
+        var fakeCursor = document.createElement('div');
+        fakeCursor.style.cssText =
+            'position:fixed;width:10px;height:10px;' +
+            'background:radial-gradient(circle at 35% 30%,#f0d870,#9a6e1a 65%,#4a2c08 100%);' +
+            'border:1px solid #c8a040;border-radius:50%;pointer-events:none;z-index:99999;' +
+            'transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,0.85),0 0 5px rgba(190,150,50,0.3);' +
+            'display:none;';
+        document.body.appendChild(fakeCursor);
+
+        document.addEventListener('mousemove', function(e) {
+            fakeCursor.style.display = 'block';
+            fakeCursor.style.left = e.clientX + 'px';
+            fakeCursor.style.top  = e.clientY + 'px';
+        });
 
     </script>
 
