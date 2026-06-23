@@ -253,7 +253,7 @@
             position: absolute;
             top: 50%; left: 0;
             transform: translateY(-50%);
-            width: 70%;
+            width: 45%;
             height: 5px;
             background: linear-gradient(to right, #6a3c10, #c8a040);
             border-radius: 2px 0 0 2px;
@@ -261,7 +261,7 @@
         }
         #vol-thumb {
             position: absolute;
-            top: 50%; left: 70%;
+            top: 50%; left: 45%;
             transform: translate(-50%, -50%);
             width: 13px; height: 13px;
             border-radius: 50%;
@@ -408,7 +408,7 @@
                     <div id="vol-fill"></div>
                     <div id="vol-thumb"></div>
                 </div>
-                <div id="vol-label">70%</div>
+                <div id="vol-label">45%</div>
             </div>
 
             <div id="progress-frame">
@@ -444,7 +444,7 @@
         var volIcon  = document.getElementById('vol-icon');
         var volTrack = document.getElementById('vol-track');
 
-        var curVol  = 0.70;
+        var curVol  = 0.45;
         var muted   = false;
         var started = false;
 
@@ -498,7 +498,7 @@
         });
         document.addEventListener('mouseup', function() { dragging = false; });
 
-        applyVolume(0.70);
+        applyVolume(0.45);
 
         // Запуск музыки сразу — CEF не блокирует autoplay.
         tryPlay();
