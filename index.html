@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>WildWest RP — Загрузка</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { width: 100%; height: 100%; }
+
+        body {
+            width: 100%; height: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+            background: #120a03;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #d4b483;
+            position: relative;
+        }
+
+        #background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: url('image.jpg') center center / cover no-repeat;
+            z-index: 0;
+        }
+
+        #vignette {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(ellipse at 50% 40%,
+                transparent 25%,
+                rgba(0,0,0,0.45) 60%,
+                rgba(0,0,0,0.82) 100%);
+            z-index: 1;
+        }
+
+        #overlay-bottom {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100vw; height: 50vh;
+            background: linear-gradient(to top,
+                rgba(8,4,1,0.97)  0%,
+                rgba(8,4,1,0.82)  30%,
+                rgba(8,4,1,0.25)  65%,
+                transparent       100%);
+            z-index: 2;
+        }
+
+        #ui-root {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100vw;
+            z-index: 10;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            padding: 0 48px 34px 48px;
+            gap: 0;
+        }
+
+        #links-col {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            flex-shrink: 0;
+            margin-right: 36px;
+            margin-bottom: 2px;
+        }
+
+        .link-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            text-decoration: none;
+            cursor: pointer;
+            height: 38px;
+            width: 168px;
+            padding: 0 14px 0 22px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 3px;
+            background: linear-gradient(180deg,
+                #3a2210 0%, #2c1a0b 40%, #24140a 70%, #1c1008 100%);
+            border-top:    1px solid #6a4c20;
+            border-left:   1px solid #5a3c18;
+            border-right:  1px solid #3a2410;
+            border-bottom: 1px solid #1a0e06;
+            box-shadow:
+                inset 0 1px 0 rgba(180,130,50,0.18),
+                inset 0 -1px 0 rgba(0,0,0,0.5),
+                0 3px 10px rgba(0,0,0,0.7);
+            transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+        }
+
+        .link-btn::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(90deg,
+                transparent 0, transparent 36px,
+                rgba(0,0,0,0.14) 36px, rgba(0,0,0,0.14) 38px);
+            pointer-events: none;
+            border-radius: 3px;
+        }
+
+        .link-btn::after {
+            content: '';
+            position: absolute;
+            left: 7px; top: 50%;
+            transform: translateY(-50%);
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #f0d870, #9a7020 65%, #4a2c08 100%);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .link-btn:hover {
+            background: linear-gradient(180deg,
+                #4e2e14 0%, #3c2210 40%, #301a0c 70%, #261408 100%);
+            border-top-color:  #c8a040;
+            border-left-color: #a07830;
+            box-shadow:
+                inset 0 1px 0 rgba(220,170,60,0.28),
+                inset 0 -1px 0 rgba(0,0,0,0.5),
+                0 3px 14px rgba(160,100,20,0.45);
+        }
+
+        .link-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+            z-index: 1;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9));
+        }
+
+        .link-label {
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: #b8943e;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+            z-index: 1;
+            transition: color 0.18s;
+            white-space: nowrap;
+        }
+
+        .link-btn:hover .link-label { color: #ecd870; }
+
+        #right-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        #server-name {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #e8c97a;
+            text-shadow:
+                0 0 28px rgba(220,175,70,0.55),
+                0 0 8px  rgba(180,130,40,0.3),
+                2px 2px 6px rgba(0,0,0,0.98);
+            margin-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        .ornament {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 9px;
+        }
+        .orn-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right,
+                transparent 0%, #b89030 15%, #b89030 85%, transparent 100%);
+        }
+        .orn-diamond {
+            width: 8px; height: 8px;
+            background: #c8a040;
+            transform: rotate(45deg);
+            margin: 0 5px;
+            flex-shrink: 0;
+            box-shadow: 0 0 5px rgba(200,160,60,0.55);
+        }
+        .orn-dot {
+            width: 4px; height: 4px;
+            background: #8a6020;
+            transform: rotate(45deg);
+            margin: 0 4px;
+            flex-shrink: 0;
+        }
+
+        #status-text {
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #8a6030;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+            margin-bottom: 11px;
+            min-height: 14px;
+        }
+
+        #volume-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 9px;
+            margin-bottom: 7px;
+            width: 100%;
+        }
+
+        #vol-icon {
+            font-size: 14px;
+            color: #6a4c1e;
+            cursor: pointer;
+            transition: color 0.2s;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
+            line-height: 1;
+        }
+        #vol-icon:hover { color: #c8a040; }
+        #vol-icon.muted { color: #3a2010; text-decoration: line-through; }
+
+        #vol-track {
+            position: relative;
+            width: 110px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        #vol-track-bg {
+            position: absolute;
+            top: 50%; left: 0;
+            transform: translateY(-50%);
+            width: 100%; height: 5px;
+            background: linear-gradient(180deg, #140c04 0%, #281808 50%, #140c04 100%);
+            border: 1px solid #3e2810;
+            border-radius: 2px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+        }
+        #vol-fill {
+            position: absolute;
+            top: 50%; left: 0;
+            transform: translateY(-50%);
+            width: 70%;
+            height: 5px;
+            background: linear-gradient(to right, #6a3c10, #c8a040);
+            border-radius: 2px 0 0 2px;
+            pointer-events: none;
+        }
+        #vol-thumb {
+            position: absolute;
+            top: 50%; left: 70%;
+            transform: translate(-50%, -50%);
+            width: 13px; height: 13px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #f0d870, #9a6e1a 65%, #4a2c08 100%);
+            border: 1px solid #c8a040;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.85), 0 0 5px rgba(190,150,50,0.3);
+            pointer-events: none;
+        }
+        #vol-label {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #5a3c14;
+            min-width: 28px;
+            text-align: right;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+            flex-shrink: 0;
+        }
+
+        #progress-frame {
+            position: relative;
+            width: 100%;
+            height: 18px;
+            background: linear-gradient(180deg,
+                #120804 0%, #1c1008 35%, #261408 65%, #120804 100%);
+            border-top:    1px solid #5a3c18;
+            border-left:   1px solid #4a3010;
+            border-right:  1px solid #4a3010;
+            border-bottom: 1px solid #2a1808;
+            border-radius: 3px;
+            box-shadow:
+                inset 0 2px 6px rgba(0,0,0,0.85),
+                0 1px 0 rgba(90,60,20,0.25);
+            overflow: hidden;
+            margin-bottom: 7px;
+        }
+
+        #progress-frame::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(90deg,
+                transparent 0, transparent 48px,
+                rgba(0,0,0,0.10) 48px, rgba(0,0,0,0.10) 50px);
+            pointer-events: none; z-index: 2;
+        }
+
+        #progress-bar {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 0%;
+            background: linear-gradient(180deg,
+                #f0cc50 0%, #c89018 28%, #9c6808 55%, #6a4408 100%);
+            transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+            z-index: 1;
+        }
+        #progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 38%;
+            background: linear-gradient(180deg, rgba(255,245,180,0.22) 0%, transparent 100%);
+        }
+
+        #progress-notches {
+            position: absolute; inset: 0; z-index: 3; pointer-events: none;
+        }
+        .notch {
+            position: absolute; top: 25%; height: 50%; width: 1px;
+            background: rgba(0,0,0,0.30);
+        }
+        .notch.major { top: 0; height: 100%; background: rgba(0,0,0,0.45); }
+
+        #progress-pct {
+            position: absolute;
+            right: 7px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            color: rgba(240,210,100,0.88);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+            z-index: 4;
+        }
+
+        #progress-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: #4a3010;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        }
+        #pf-map::before  { content: '✦ '; }
+        #pf-map::after   { content: ' ✦'; }
+        #pf-time::before { content: '✦ '; }
+        #pf-time::after  { content: ' ✦'; }
+
+        audio { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="background"></div>
+    <div id="vignette"></div>
+    <div id="overlay-bottom"></div>
+
+    <audio id="bg-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="ui-root">
+
+        <div id="links-col">
+            <a class="link-btn" href="https://discord.gg/r62vRJT7YN" target="_blank">
+                <span class="link-icon">💬</span>
+                <span class="link-label">Discord</span>
+            </a>
+            <a class="link-btn" href="https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606" target="_blank">
+                <span class="link-icon">📦</span>
+                <span class="link-label">Коллекция</span>
+            </a>
+            <a class="link-btn" href="https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0" target="_blank">
+                <span class="link-icon">📜</span>
+                <span class="link-label">Правила</span>
+            </a>
+        </div>
+
+        <div id="right-col">
+
+            <div id="server-name">WildWest RP &nbsp;|&nbsp; #OUTRUN.GAMES</div>
+
+            <div class="ornament">
+                <div class="orn-line"></div>
+                <div class="orn-dot"></div>
+                <div class="orn-diamond"></div>
+                <div class="orn-dot"></div>
+                <div class="orn-line"></div>
+            </div>
+
+            <div id="status-text">Подключение...</div>
+
+            <div id="volume-row">
+                <div id="vol-icon" title="Вкл/выкл">♪</div>
+                <div id="vol-track">
+                    <div id="vol-track-bg"></div>
+                    <div id="vol-fill"></div>
+                    <div id="vol-thumb"></div>
+                </div>
+                <div id="vol-label">70%</div>
+            </div>
+
+            <div id="progress-frame">
+                <div id="progress-notches"></div>
+                <div id="progress-bar"></div>
+                <div id="progress-pct">0%</div>
+            </div>
+
+            <div id="progress-footer">
+                <span id="pf-map">Карта</span>
+                <span id="pf-time">0 сек</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            var c = document.getElementById('progress-notches');
+            for (var i = 1; i <= 9; i++) {
+                var n = document.createElement('div');
+                n.className = 'notch' + (i === 5 ? ' major' : '');
+                n.style.left = (i * 10) + '%';
+                c.appendChild(n);
+            }
+        })();
+
+        var music    = document.getElementById('bg-music');
+        var volFill  = document.getElementById('vol-fill');
+        var volThumb = document.getElementById('vol-thumb');
+        var volLabel = document.getElementById('vol-label');
+        var volIcon  = document.getElementById('vol-icon');
+        var volTrack = document.getElementById('vol-track');
+
+        var curVol  = 0.70;
+        var muted   = false;
+        var started = false;
+
+        function applyVolume(v) {
+            curVol = Math.max(0, Math.min(1, v));
+            music.volume = muted ? 0 : curVol;
+            var p = Math.round(curVol * 100);
+            volFill.style.width = p + '%';
+            volThumb.style.left = p + '%';
+            volLabel.innerText  = p + '%';
+        }
+
+        function tryPlay() {
+            if (started) return;
+            music.volume = muted ? 0 : curVol;
+            var p = music.play();
+            if (p) p.then(function() { started = true; }).catch(function() {});
+        }
+
+        document.addEventListener('mousemove', tryPlay, { once: true });
+        document.addEventListener('click', tryPlay);
+
+        volIcon.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            muted = !muted;
+            music.volume = muted ? 0 : curVol;
+            volIcon.classList.toggle('muted', muted);
+            tryPlay();
+        });
+
+        var dragging = false;
+        function volFromEvent(e) {
+            var r = volTrack.getBoundingClientRect();
+            return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        }
+        volTrack.addEventListener('mousedown', function(e) {
+            dragging = true;
+            applyVolume(volFromEvent(e));
+            if (muted) { muted = false; volIcon.classList.remove('muted'); }
+            tryPlay();
+            e.preventDefault();
+        });
+        document.addEventListener('mousemove', function(e) {
+            if (dragging) applyVolume(volFromEvent(e));
+        });
+        document.addEventListener('mouseup', function() { dragging = false; });
+
+        applyVolume(0.70);
+
+        var lastPct    = 0;
+        var elapsedSec = 0;
+
+        setInterval(function() {
+            elapsedSec++;
+            document.getElementById('pf-time').innerText = elapsedSec + ' сек';
+        }, 1000);
+
+        var statusMap = {
+            'connect':               'Соединение с сервером...',
+            'requestingsignon':      'Авторизация...',
+            'signonchallenge':       'Проверка...',
+            'signonconnect':         'Установка соединения...',
+            'connected':             'Подключено',
+            'sendingclientinfo':     'Отправка данных клиента...',
+            'processserverinfo':     'Получение данных сервера...',
+            'processstringtable':    'Загрузка таблиц ресурсов...',
+            'processbaseline':       'Инициализация мира...',
+            'loadingresources':      'Загрузка ресурсов сервера...',
+            'sendingclientfiles':    'Отправка файлов...',
+            'processclientinfo':     'Обработка клиентских данных...',
+            'creatingnetworkedvars': 'Создание сетевых переменных...',
+            'spawnplayer':           'Появление в мире...',
+            'fullyconnected':        'Добро пожаловать!'
+        };
+
+        function GameDetails(statusName, statusText, mapName, loadingHTML, timeNotChanged, timeElapsed, progress) {
+            var p = Math.floor(progress * 100);
+            if (p >= lastPct) {
+                lastPct = p;
+                document.getElementById('progress-bar').style.width = p + '%';
+                document.getElementById('progress-pct').innerText   = p + '%';
+            }
+            var txt = statusMap[statusName] || statusText || 'Загрузка...';
+            if (timeNotChanged > 15 && p < 99)
+                txt = 'Ожидание сервера... (' + Math.round(timeNotChanged) + ' сек)';
+            document.getElementById('status-text').innerText = txt;
+            if (mapName && mapName !== '') {
+                var clean = mapName.replace(/^maps\//, '').replace(/\.bsp$/, '').toUpperCase();
+                document.getElementById('pf-map').innerText = clean;
+            }
+        }
+
+        (function() {
+            var cur = 0;
+            var bar = document.getElementById('progress-bar');
+            var pct = document.getElementById('progress-pct');
+            var iv  = setInterval(function() {
+                if (cur >= 94) { clearInterval(iv); return; }
+                cur = Math.min(94, cur + Math.max(0.04, (94 - cur) * 0.003));
+                if (cur > lastPct) {
+                    bar.style.width = cur.toFixed(1) + '%';
+                    pct.innerText   = Math.floor(cur) + '%';
+                }
+            }, 120);
+        })();
+    </script>
+
+</body>
+</html>
