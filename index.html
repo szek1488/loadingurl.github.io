@@ -408,15 +408,12 @@
 
         <div id="links-col">
             <div class="link-btn" onclick="window.open('https://discord.gg/r62vRJT7YN')">
-                <span class="link-icon">💬</span>
                 <span class="link-label">Discord <span class="link-key">[1]</span></span>
             </div>
             <div class="link-btn" onclick="window.open('https://steamcommunity.com/sharedfiles/filedetails/?id=3712674606')">
-                <span class="link-icon">📦</span>
                 <span class="link-label">Коллекция <span class="link-key">[2]</span></span>
             </div>
             <div class="link-btn" onclick="window.open('https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0')">
-                <span class="link-icon">📜</span>
                 <span class="link-label">Правила <span class="link-key">[3]</span></span>
             </div>
         </div>
@@ -444,7 +441,7 @@
                 </div>
                 <div id="vol-label">45%</div>
             </div>
-            <div id="key-hint-static">[ 1 ] discord &nbsp;·&nbsp; [ 2 ] коллекция &nbsp;·&nbsp; [ 3 ] правила &nbsp;·&nbsp; [ M ] заглушить музыку &nbsp;·&nbsp; [ ↑↓ ] громкость</div>
+            <div id="key-hint-static">[ 1 ] discord &nbsp;·&nbsp; [ 2 ] коллекция &nbsp;·&nbsp; [ 3 ] правила &nbsp;·&nbsp; [ M ] mute &nbsp;·&nbsp; [ ↑↓ ] громкость</div>
 
             <div id="progress-frame">
                 <div id="progress-notches"></div>
@@ -656,7 +653,7 @@
             } else if (e.key === '3') {
                 window.open('https://docs.google.com/document/d/1hOebfbiv_XkUSbNphGj8RDA4hF4fvdM0qHwg77NXHS0/edit?tab=t.0');
                 showKeyHint('[3] Правила');
-            } else if (e.key === 'm' || e.key === 'M' || e.key === 'м' || e.key === 'М') {
+            } else if (e.key === 'm' || e.key === 'M') {
                 muted = !muted;
                 music.volume = muted ? 0 : curVol;
                 volIcon.classList.toggle('muted', muted);
@@ -675,14 +672,14 @@
             }
         });
 
-        // Всплывающая подсказка об изменении громкости
+        // Всплывающая подсказка об изменении громкости — над орнаментом
         var keyHintEl = null;
         var keyHintTimer = null;
         function showKeyHint(text) {
             if (!keyHintEl) {
                 keyHintEl = document.createElement('div');
                 keyHintEl.style.cssText =
-                    'position:fixed;bottom:90px;right:16px;' +
+                    'position:fixed;bottom:180px;right:48px;' +
                     'background:rgba(18,8,3,0.92);border:1px solid #6a4c20;' +
                     'color:#c8a040;font-size:11px;letter-spacing:1.5px;' +
                     'padding:6px 14px;border-radius:3px;z-index:9998;' +
